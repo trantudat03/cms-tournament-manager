@@ -1,0 +1,64 @@
+{
+  "kind": "collectionType",
+  "collectionName": "tournaments",
+  "info": {
+    "singularName": "tournament",
+    "pluralName": "tournaments",
+    "displayName": "Tournament"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "system_tournament": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::system-tournament.system-tournament",
+      "inversedBy": "tournaments"
+    },
+    "startDate": {
+      "type": "datetime"
+    },
+    "endDate": {
+      "type": "datetime"
+    },
+    "maxParticipants": {
+      "type": "integer"
+    },
+    "currentParticipants": {
+      "type": "integer"
+    },
+    "entryFee": {
+      "type": "decimal"
+    },
+    "prizePool": {
+      "type": "decimal"
+    },
+    "statusTournament": {
+      "type": "enumeration",
+      "enum": [
+        "upcoming",
+        "ongoing",
+        "finished"
+      ]
+    },
+    "location": {
+      "type": "text"
+    },
+    "banner": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    }
+  }
+}
