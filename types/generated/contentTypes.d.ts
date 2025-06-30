@@ -538,6 +538,90 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiSystemTournamentSystemTournament
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'system_tournaments';
+  info: {
+    displayName: 'System tournament';
+    pluralName: 'system-tournaments';
+    singularName: 'system-tournament';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    facebookLink: Schema.Attribute.String;
+    groupZalo: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::system-tournament.system-tournament'
+    > &
+      Schema.Attribute.Private;
+    logoSystem: Schema.Attribute.Media<'images' | 'files'>;
+    name: Schema.Attribute.String;
+    phoneNumber: Schema.Attribute.String;
+    phoneZalo: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    tournaments: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::tournament.tournament'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userId: Schema.Attribute.String;
+  };
+}
+
+export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
+  collectionName: 'tournaments';
+  info: {
+    displayName: 'Tournament';
+    pluralName: 'tournaments';
+    singularName: 'tournament';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    banner: Schema.Attribute.Media<'images' | 'files'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currentParticipants: Schema.Attribute.Integer;
+    description: Schema.Attribute.Text;
+    endDate: Schema.Attribute.DateTime;
+    entryFee: Schema.Attribute.Decimal;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::tournament.tournament'
+    > &
+      Schema.Attribute.Private;
+    location: Schema.Attribute.Text;
+    maxParticipants: Schema.Attribute.Integer;
+    name: Schema.Attribute.String;
+    prizePool: Schema.Attribute.Decimal;
+    publishedAt: Schema.Attribute.DateTime;
+    startDate: Schema.Attribute.DateTime;
+    statusTournament: Schema.Attribute.Enumeration<
+      ['upcoming', 'ongoing', 'finished']
+    >;
+    system_tournament: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::system-tournament.system-tournament'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface PluginContentReleasesRelease
   extends Struct.CollectionTypeSchema {
   collectionName: 'strapi_releases';
@@ -993,7 +1077,6 @@ export interface PluginUsersPermissionsUser
   };
   options: {
     draftAndPublish: false;
-    timestamps: true;
   };
   attributes: {
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
@@ -1013,6 +1096,11 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.user'
     > &
       Schema.Attribute.Private;
+    numberphone: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 12;
+        minLength: 10;
+      }>;
     password: Schema.Attribute.Password &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
@@ -1025,6 +1113,9 @@ export interface PluginUsersPermissionsUser
       'manyToOne',
       'plugin::users-permissions.role'
     >;
+    type: Schema.Attribute.Enumeration<['customer', 'system-owner']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'customer'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1052,6 +1143,8 @@ declare module '@strapi/strapi' {
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
       'api::global.global': ApiGlobalGlobal;
+      'api::system-tournament.system-tournament': ApiSystemTournamentSystemTournament;
+      'api::tournament.tournament': ApiTournamentTournament;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

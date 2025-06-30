@@ -1,0 +1,50 @@
+{
+  "kind": "collectionType",
+  "collectionName": "system_tournaments",
+  "info": {
+    "singularName": "system-tournament",
+    "pluralName": "system-tournaments",
+    "displayName": "System tournament"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "phoneNumber": {
+      "type": "string"
+    },
+    "phoneZalo": {
+      "type": "string"
+    },
+    "facebookLink": {
+      "type": "string"
+    },
+    "groupZalo": {
+      "type": "string"
+    },
+    "logoSystem": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "userId": {
+      "type": "string"
+    },
+    "tournaments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::tournament.tournament",
+      "mappedBy": "system_tournament"
+    }
+  }
+}
