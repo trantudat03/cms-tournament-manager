@@ -8,5 +8,21 @@ export default {
         auth: {},
       },
     },
+    {
+      method: 'GET',
+      path: '/tournaments/document/:documentId',
+      handler: 'tournament-custom.findByDocumentId',
+      config: {
+        auth: {},
+      },
+    },
+    {
+      method: 'PUT',
+      path: '/tournaments/document/:documentId',
+      handler: 'tournament-custom.updateByDocumentId',
+      config: {
+        auth: {},
+      },
+    },
   ],
 }; 

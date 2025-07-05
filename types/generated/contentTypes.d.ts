@@ -538,6 +538,41 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiSystemPackageSystemPackage
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'system_packages';
+  info: {
+    displayName: 'System package';
+    pluralName: 'system-packages';
+    singularName: 'system-package';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    duration: Schema.Attribute.Integer;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::system-package.system-package'
+    > &
+      Schema.Attribute.Private;
+    maxTournament: Schema.Attribute.Integer;
+    name: Schema.Attribute.String;
+    price: Schema.Attribute.Decimal;
+    publishedAt: Schema.Attribute.DateTime;
+    unlimitedTournament: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiSystemTournamentSystemTournament
   extends Struct.CollectionTypeSchema {
   collectionName: 'system_tournaments';
@@ -556,6 +591,7 @@ export interface ApiSystemTournamentSystemTournament
     description: Schema.Attribute.Text;
     facebookLink: Schema.Attribute.String;
     groupZalo: Schema.Attribute.String;
+    isUseTrial: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -564,9 +600,14 @@ export interface ApiSystemTournamentSystemTournament
       Schema.Attribute.Private;
     logoSystem: Schema.Attribute.Media<'images' | 'files'>;
     name: Schema.Attribute.String;
+    packageActivatedAt: Schema.Attribute.DateTime;
     phoneNumber: Schema.Attribute.String;
     phoneZalo: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    system_package: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::system-package.system-package'
+    >;
     tournaments: Schema.Attribute.Relation<
       'oneToMany',
       'api::tournament.tournament'
@@ -1143,6 +1184,7 @@ declare module '@strapi/strapi' {
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
       'api::global.global': ApiGlobalGlobal;
+      'api::system-package.system-package': ApiSystemPackageSystemPackage;
       'api::system-tournament.system-tournament': ApiSystemTournamentSystemTournament;
       'api::tournament.tournament': ApiTournamentTournament;
       'plugin::content-releases.release': PluginContentReleasesRelease;

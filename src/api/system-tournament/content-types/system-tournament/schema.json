@@ -45,6 +45,18 @@
       "relation": "oneToMany",
       "target": "api::tournament.tournament",
       "mappedBy": "system_tournament"
+    },
+    "packageActivatedAt": {
+      "type": "datetime"
+    },
+    "isUseTrial": {
+      "type": "boolean",
+      "default": false
+    },
+    "system_package": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::system-package.system-package"
     }
   }
 }
