@@ -4,4 +4,12 @@ export default ({ env }) => ({
   app: {
     keys: env.array("APP_KEYS", ["myKeyA", "myKeyB"]),
   },
+  cron: {
+    enabled: true,
+    tasks: {
+      '0 5 * * *': {
+        task: require('./cron-tasks/updateIsUseTrial').default,
+      },
+    },
+  },
 });

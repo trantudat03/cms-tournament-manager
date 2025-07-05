@@ -52,12 +52,25 @@ export default {
       userId: user.documentId
     };
 
-    const entry = await strapi.entityService.create('api::system-tournament.system-tournament', {
+    // Tạo system-tournament bằng Document Service API
+    const entry = await strapi.documents('api::system-tournament.system-tournament').create({
       data,
       populate: {
         logoSystem: true,
-        tournaments: { populate: '*' }
+        tournaments: { populate: '*' },
+        system_package: true
       }
+    });
+
+    // Publish document
+    await strapi.documents('api::system-tournament.system-tournament').publish({
+      documentId: entry.documentId
+    });
+
+    // Cập nhật type của user thành system-owner
+    await strapi.documents('plugin::users-permissions.user').update({
+      documentId: user.documentId,
+      data: { type: 'system-owner' }
     });
 
     return ctx.send({ data: entry });
