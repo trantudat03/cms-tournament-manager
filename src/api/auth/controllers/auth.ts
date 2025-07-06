@@ -36,6 +36,25 @@ export default factories.createCoreController('plugin::users-permissions.user', 
 
     const user = await strapi.plugins['users-permissions'].services.user.add(params);
 
+    // Kiểm tra nếu user có type là system-owner thì tạo system-tournament
+    if (user.type === 'system-owner') {
+      try {
+        await strapi.documents('api::system-tournament.system-tournament').create({
+          data: {
+            name: `${user.username}'s System`,
+            description: `System tournament for ${user.username}`,
+            phoneNumber: user.numberphone || '',
+            userId: user.documentId.toString(), // Sử dụng user.id thay vì documentId
+            isUseTrial: true, // Mặc định sử dụng trial
+            publishedAt: new Date(),
+          },
+        });
+      } catch (error) {
+        console.error('Error creating system-tournament:', error);
+        // Không throw error để không ảnh hưởng đến việc tạo user
+      }
+    }
+
     // Tự loại bỏ các trường nhạy cảm
     const { password, resetPasswordToken, confirmationToken, ...sanitizedUser } = user;
 

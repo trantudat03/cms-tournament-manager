@@ -40,12 +40,6 @@
     "userId": {
       "type": "string"
     },
-    "tournaments": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::tournament.tournament",
-      "mappedBy": "system_tournament"
-    },
     "packageActivatedAt": {
       "type": "datetime"
     },
@@ -57,6 +51,12 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::system-package.system-package"
+    },
+    "tournaments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::tournament.tournament",
+      "mappedBy": "system_tournament"
     }
   }
 }

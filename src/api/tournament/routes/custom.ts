@@ -24,5 +24,21 @@ export default {
         auth: {},
       },
     },
+    {
+      method: 'POST',
+      path: '/tournaments/:id/create-bracket',
+      handler: 'tournament-custom.createBracket',
+      config: {
+        auth: {},
+      },
+    },
+    {
+      method: 'GET',
+      path: '/tournaments/:id/bracket',
+      handler: 'tournament-custom.getBracket',
+      config: {
+        auth: {},
+      },
+    },
   ],
 }; 

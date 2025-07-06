@@ -17,12 +17,6 @@
     "description": {
       "type": "text"
     },
-    "system_tournament": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::system-tournament.system-tournament",
-      "inversedBy": "tournaments"
-    },
     "startDate": {
       "type": "datetime"
     },
@@ -59,6 +53,24 @@
         "images",
         "files"
       ]
+    },
+    "rounds": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::round.round",
+      "mappedBy": "tournament"
+    },
+    "system_tournament": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::system-tournament.system-tournament",
+      "inversedBy": "tournaments"
+    },
+    "matches": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::match.match",
+      "mappedBy": "tournament"
     }
   }
 }
