@@ -16,6 +16,15 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       throw new Error('Register action is currently disabled');
     }
 
+    // Kiểm tra email đã tồn tại chưa
+    const existingUser = await strapi.plugins['users-permissions'].services.user.fetch({
+      email: ctx.request.body.email,
+    });
+
+    if (existingUser) {
+      return ctx.badRequest('Email already exists');
+    }
+
     // Lấy role mặc định (authenticated)
     const defaultRole = await strapi
       .query('plugin::users-permissions.role')
