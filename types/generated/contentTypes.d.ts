@@ -538,6 +538,106 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
+  collectionName: 'matches';
+  info: {
+    displayName: 'Match';
+    pluralName: 'matches';
+    singularName: 'match';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    endTime: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::match.match'> &
+      Schema.Attribute.Private;
+    matchNumber: Schema.Attribute.Integer;
+    name: Schema.Attribute.String;
+    nextMatchLoser: Schema.Attribute.Relation<'oneToOne', 'api::match.match'>;
+    nextMatchWinner: Schema.Attribute.Relation<'oneToOne', 'api::match.match'>;
+    note: Schema.Attribute.Text;
+    playerName1: Schema.Attribute.String;
+    playerName2: Schema.Attribute.String;
+    previousMatch1: Schema.Attribute.Relation<'oneToOne', 'api::match.match'>;
+    previousMatch2: Schema.Attribute.Relation<'oneToOne', 'api::match.match'>;
+    publishedAt: Schema.Attribute.DateTime;
+    round: Schema.Attribute.Relation<'manyToOne', 'api::round.round'>;
+    score1: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
+    score2: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
+    startTime: Schema.Attribute.DateTime;
+    statusMatch: Schema.Attribute.Enumeration<
+      ['pending', 'in_progress', 'complated', 'rejected']
+    >;
+    tournament: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::tournament.tournament'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    winner: Schema.Attribute.Enumeration<['player1', 'player2']>;
+  };
+}
+
+export interface ApiRoundRound extends Struct.CollectionTypeSchema {
+  collectionName: 'rounds';
+  info: {
+    displayName: 'Round';
+    pluralName: 'rounds';
+    singularName: 'round';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    endTime: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::round.round'> &
+      Schema.Attribute.Private;
+    matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
+    name: Schema.Attribute.String;
+    order: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 15;
+          min: 1;
+        },
+        number
+      >;
+    publishedAt: Schema.Attribute.DateTime;
+    startTime: Schema.Attribute.DateTime;
+    tournament: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::tournament.tournament'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiSystemPackageSystemPackage
   extends Struct.CollectionTypeSchema {
   collectionName: 'system_packages';
@@ -645,10 +745,12 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     location: Schema.Attribute.Text;
+    matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     maxParticipants: Schema.Attribute.Integer;
     name: Schema.Attribute.String;
     prizePool: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
+    rounds: Schema.Attribute.Relation<'oneToMany', 'api::round.round'>;
     startDate: Schema.Attribute.DateTime;
     statusTournament: Schema.Attribute.Enumeration<
       ['upcoming', 'ongoing', 'finished']
@@ -1184,6 +1286,8 @@ declare module '@strapi/strapi' {
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
       'api::global.global': ApiGlobalGlobal;
+      'api::match.match': ApiMatchMatch;
+      'api::round.round': ApiRoundRound;
       'api::system-package.system-package': ApiSystemPackageSystemPackage;
       'api::system-tournament.system-tournament': ApiSystemTournamentSystemTournament;
       'api::tournament.tournament': ApiTournamentTournament;

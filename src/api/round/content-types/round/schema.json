@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "rounds",
+  "info": {
+    "singularName": "round",
+    "pluralName": "rounds",
+    "displayName": "Round"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "order": {
+      "type": "integer",
+      "min": 1,
+      "max": 15
+    },
+    "startTime": {
+      "type": "datetime"
+    },
+    "endTime": {
+      "type": "datetime"
+    },
+    "tournament": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::tournament.tournament",
+      "inversedBy": "rounds"
+    },
+    "matches": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::match.match",
+      "mappedBy": "round"
+    }
+  }
+}
