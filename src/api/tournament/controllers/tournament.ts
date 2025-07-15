@@ -35,9 +35,11 @@ export default factories.createCoreController('api::tournament.tournament', ({ s
       }
 
       // Tạo tournament với system_tournament được set
+      // Ép banner = null nếu không truyền lên để tránh tự động gán banner
       const tournamentData = {
         ...ctx.request.body.data,
-        system_tournament: systemTournament.documentId
+        system_tournament: systemTournament.documentId,
+        banner: ctx.request.body.data?.banner ? Number(ctx.request.body.data.banner) : null
       };
 
       const tournament = await strapi.documents('api::tournament.tournament').create({
@@ -76,10 +78,16 @@ export default factories.createCoreController('api::tournament.tournament', ({ s
     const { id } = ctx.params;
     const { data } = ctx.request.body;
 
+    // Ép banner = null nếu không truyền lên để tránh tự động gán banner
+    const updateData = {
+      ...data,
+      banner: data?.banner || null
+    };
+
     // Update tournament bằng Document Service API
     await strapi.documents('api::tournament.tournament').update({
         documentId: id,
-        data,
+        data: updateData,
       });
     await strapi.documents('api::tournament.tournament').publish({
         documentId: id,
@@ -103,7 +111,14 @@ export default factories.createCoreController('api::tournament.tournament', ({ s
     });
 
     // Gửi event realtime qua Pusher lên channel riêng cho từng tournament
-    await pusher.trigger(`tournament-${id}`, 'tournament-updated', fullTournament);
+    // Chỉ gửi thông tin cơ bản để tránh payload quá lớn
+    const tournamentSummary = {
+      id: fullTournament.id,
+      name: fullTournament.name,
+      statusTournament: fullTournament.statusTournament,
+      updatedAt: fullTournament.updatedAt
+    };
+    await pusher.trigger(`tournament-${id}`, 'tournament-updated', tournamentSummary);
 
     return ctx.send({ data: fullTournament });
   },

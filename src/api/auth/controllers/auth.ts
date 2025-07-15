@@ -17,23 +17,25 @@ export default factories.createCoreController('plugin::users-permissions.user', 
     }
 
     // Kiểm tra email đã tồn tại chưa
-    const existingUser = await strapi.plugins['users-permissions'].services.user.fetch({
-      email: ctx.request.body.email,
+    const existingUsers = await strapi.documents('plugin::users-permissions.user').findMany({
+      filters: { email: ctx.request.body.email },
     });
+    const existingUser = existingUsers[0];
 
     if (existingUser) {
       return ctx.badRequest('Email already exists');
     }
 
     // Lấy role mặc định (authenticated)
-    const defaultRole = await strapi
-      .query('plugin::users-permissions.role')
-      .findOne({ where: { type: 'authenticated' } });
+    const defaultRoles = await strapi.documents('plugin::users-permissions.role').findMany({
+      filters: { type: 'authenticated' },
+    });
+    const defaultRole = defaultRoles[0];
 
     const params = {
       ...ctx.request.body,
       provider: 'local',
-      role: defaultRole ? defaultRole.id : undefined, // Gán role mặc định
+      role: defaultRole ? defaultRole.documentId : undefined, // Gán role mặc định
     };
 
     // Add custom fields validation
@@ -43,7 +45,9 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       }
     }
 
-    const user = await strapi.plugins['users-permissions'].services.user.add(params);
+    const user = await strapi.documents('plugin::users-permissions.user').create({
+      data: params,
+    });
 
     // Kiểm tra nếu user có type là system-owner thì tạo system-tournament
     if (user.type === 'system-owner') {
@@ -53,7 +57,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
             name: `${user.username}'s System`,
             description: `System tournament for ${user.username}`,
             phoneNumber: user.numberphone || '',
-            userId: user.documentId.toString(), // Sử dụng user.id thay vì documentId
+            userId: user.documentId.toString(), // Sử dụng user.documentId
             isUseTrial: true, // Mặc định sử dụng trial
             publishedAt: new Date(),
           },
@@ -79,7 +83,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       });
     }
 
-    const jwt = strapi.plugins['users-permissions'].services.jwt.issue({ id: user.id });
+    const jwt = strapi.plugins['users-permissions'].services.jwt.issue({ id: user.documentId });
 
     return ctx.send({
       jwt,
