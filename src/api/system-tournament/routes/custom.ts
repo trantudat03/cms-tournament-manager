@@ -24,5 +24,29 @@ export default {
         auth: {},
       },
     },
+    {
+      method: 'GET',
+      path: '/system-tournaments/tournaments',
+      handler: 'system-tournament-custom.findTournamentsBySystemTournament',
+      config: {
+        auth: {},
+      },
+    },
+    {
+      method: 'GET',
+      path: '/system-tournaments/statistics',
+      handler: 'system-tournament-custom.getSystemStatistics',
+      config: {
+        auth: {},
+      },
+    },
+    {
+      method: 'PUT',
+      path: '/system-tournaments/update/:id',
+      handler: 'system-tournament-custom.updateSystemTournamentByUser',
+      config: {
+        auth: {},
+      },
+    },
   ],
 }; 

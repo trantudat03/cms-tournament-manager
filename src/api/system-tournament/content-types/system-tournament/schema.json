@@ -37,6 +37,14 @@
         "files"
       ]
     },
+    "banner": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
     "userId": {
       "type": "string"
     },
