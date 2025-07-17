@@ -110,16 +110,6 @@ export default factories.createCoreController('api::tournament.tournament', ({ s
       }
     });
 
-    // Gửi event realtime qua Pusher lên channel riêng cho từng tournament
-    // Chỉ gửi thông tin cơ bản để tránh payload quá lớn
-    const tournamentSummary = {
-      id: fullTournament.id,
-      name: fullTournament.name,
-      statusTournament: fullTournament.statusTournament,
-      updatedAt: fullTournament.updatedAt
-    };
-    await pusher.trigger(`tournament-${id}`, 'tournament-updated', tournamentSummary);
-
     return ctx.send({ data: fullTournament });
   },
 
