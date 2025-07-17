@@ -49,6 +49,10 @@
     "note": {
       "type": "text"
     },
+    "userStatusUpdate": {
+      "type": "boolean",
+      "default": false
+    },
     "nextMatchWinner": {
       "type": "relation",
       "relation": "oneToOne",

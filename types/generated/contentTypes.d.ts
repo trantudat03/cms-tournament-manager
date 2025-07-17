@@ -623,6 +623,8 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    userStatusUpdate: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     winner: Schema.Attribute.Enumeration<['player1', 'player2']>;
   };
 }
