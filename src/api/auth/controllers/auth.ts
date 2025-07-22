@@ -90,4 +90,62 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       user: sanitizedUser,
     });
   },
+
+  async searchUser(ctx) {
+    try {
+      // Kiểm tra quyền truy cập - chỉ system-owner mới được phép
+      const user = ctx.state.user;
+      if (!user || user.type !== 'system-owner') {
+        return ctx.forbidden('Access denied. Only system-owner can search users.');
+      }
+
+      const { search } = ctx.query;
+
+      // Kiểm tra tham số search phải được cung cấp
+      if (!search) {
+        return ctx.badRequest('Please provide search parameter');
+      }
+
+      const searchTerm = String(search);
+
+      // Tìm kiếm users với $or để tìm trong cả email và numberphone
+      const users = await strapi.documents('plugin::users-permissions.user').findMany({
+        filters: {
+          $or: [
+            {
+              email: {
+                $contains: searchTerm
+              }
+            },
+            {
+              numberphone: {
+                $contains: searchTerm
+              }
+            }
+          ]
+        },
+        fields: ['id', 'username', 'email', 'numberphone'], // Chỉ trả về các trường yêu cầu
+      });
+
+      // Format kết quả trả về
+      const formattedUsers = users.map(user => ({
+        id: user.id,
+        documentId: user.documentId, // Sử dụng id làm documentId
+        username: user.username, // Sử dụng username làm name
+        email: user.email,
+        numberphone: user.numberphone // Sử dụng numberphone 
+      }));
+
+      return ctx.send({
+        data: formattedUsers,
+        meta: {
+          count: formattedUsers.length
+        }
+      });
+
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return ctx.internalServerError('Internal server error');
+    }
+  },
 })); 

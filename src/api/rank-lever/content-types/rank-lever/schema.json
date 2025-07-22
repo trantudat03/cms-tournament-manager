@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "rank_levers",
+  "info": {
+    "singularName": "rank-lever",
+    "pluralName": "rank-levers",
+    "displayName": "rankLever"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": false
+    }
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "lever": {
+      "type": "integer",
+      "default": 0
+    },
+    "system_tournament": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::system-tournament.system-tournament",
+      "inversedBy": "rank_levers"
+    }
+  }
+}

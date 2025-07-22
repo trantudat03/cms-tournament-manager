@@ -65,6 +65,24 @@
       "relation": "oneToMany",
       "target": "api::tournament.tournament",
       "mappedBy": "system_tournament"
+    },
+    "players": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::player.player",
+      "mappedBy": "system_tournaments"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "mappedBy": "system_tournament"
+    },
+    "rank_levers": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::rank-lever.rank-lever",
+      "mappedBy": "system_tournament"
     }
   }
 }

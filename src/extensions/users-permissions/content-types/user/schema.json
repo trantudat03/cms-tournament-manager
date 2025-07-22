@@ -79,6 +79,18 @@
       "type": "string",
       "minLength": 10,
       "maxLength": 12
+    },
+    "system_tournament": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::system-tournament.system-tournament",
+      "inversedBy": "users_permissions_user"
+    },
+    "players": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::player.player",
+      "mappedBy": "users_permissions_user"
     }
   }
 }
