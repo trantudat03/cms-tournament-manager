@@ -431,104 +431,47 @@ export interface ApiAppSettingAppSetting extends Struct.SingleTypeSchema {
   };
 }
 
-export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
-  collectionName: 'articles';
+export interface ApiBracketBracket extends Struct.CollectionTypeSchema {
+  collectionName: 'brackets';
   info: {
-    description: 'Create your blog content';
-    displayName: 'Article';
-    pluralName: 'articles';
-    singularName: 'article';
+    displayName: 'Bracket';
+    pluralName: 'brackets';
+    singularName: 'bracket';
   };
   options: {
     draftAndPublish: true;
   };
   attributes: {
-    author: Schema.Attribute.Relation<'manyToOne', 'api::author.author'>;
-    blocks: Schema.Attribute.DynamicZone<
-      ['shared.media', 'shared.quote', 'shared.rich-text', 'shared.slider']
+    advanceToNextBracket: Schema.Attribute.Integer;
+    bracketStatus: Schema.Attribute.Enumeration<
+      ['upcoming', 'active', 'completed']
+    > &
+      Schema.Attribute.DefaultTo<'upcoming'>;
+    bracketType: Schema.Attribute.Enumeration<
+      ['Single Elimination', 'Double Elimination']
     >;
-    category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
-    cover: Schema.Attribute.Media<'images' | 'files' | 'videos'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    description: Schema.Attribute.Text &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 80;
-      }>;
+    currentParticipants: Schema.Attribute.Integer;
+    endDate: Schema.Attribute.DateTime;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
-      'api::article.article'
+      'api::bracket.bracket'
     > &
       Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    slug: Schema.Attribute.UID<'title'>;
-    title: Schema.Attribute.String;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiAuthorAuthor extends Struct.CollectionTypeSchema {
-  collectionName: 'authors';
-  info: {
-    description: 'Create authors for your content';
-    displayName: 'Author';
-    pluralName: 'authors';
-    singularName: 'author';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    articles: Schema.Attribute.Relation<'oneToMany', 'api::article.article'>;
-    avatar: Schema.Attribute.Media<'images' | 'files' | 'videos'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    email: Schema.Attribute.String;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::author.author'
-    > &
-      Schema.Attribute.Private;
+    maxParticipants: Schema.Attribute.Integer;
     name: Schema.Attribute.String;
+    order: Schema.Attribute.Integer;
+    players: Schema.Attribute.Relation<'manyToMany', 'api::player.player'>;
     publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
-  collectionName: 'categories';
-  info: {
-    description: 'Organize your content into categories';
-    displayName: 'Category';
-    pluralName: 'categories';
-    singularName: 'category';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    articles: Schema.Attribute.Relation<'oneToMany', 'api::article.article'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.Text;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::category.category'
-    > &
-      Schema.Attribute.Private;
-    name: Schema.Attribute.String;
-    publishedAt: Schema.Attribute.DateTime;
-    slug: Schema.Attribute.UID;
+    rounds: Schema.Attribute.Relation<'oneToMany', 'api::round.round'>;
+    startDate: Schema.Attribute.DateTime;
+    tournament: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::tournament.tournament'
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -592,6 +535,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     note: Schema.Attribute.Text;
     playerName1: Schema.Attribute.String;
     playerName2: Schema.Attribute.String;
+    players: Schema.Attribute.Relation<'manyToMany', 'api::player.player'>;
     previousMatch1: Schema.Attribute.Relation<'oneToOne', 'api::match.match'>;
     previousMatch2: Schema.Attribute.Relation<'oneToOne', 'api::match.match'>;
     publishedAt: Schema.Attribute.DateTime;
@@ -616,16 +560,111 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     statusMatch: Schema.Attribute.Enumeration<
       ['pending', 'in_progress', 'complated', 'rejected']
     >;
-    tournament: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::tournament.tournament'
-    >;
+    table: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     userStatusUpdate: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
     winner: Schema.Attribute.Enumeration<['player1', 'player2']>;
+  };
+}
+
+export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
+  collectionName: 'players';
+  info: {
+    displayName: 'player';
+    pluralName: 'players';
+    singularName: 'player';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    avatar: Schema.Attribute.Media<'images' | 'files'>;
+    birthDate: Schema.Attribute.Date;
+    brackets: Schema.Attribute.Relation<'manyToMany', 'api::bracket.bracket'>;
+    countryCode: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 2;
+        minLength: 1;
+      }> &
+      Schema.Attribute.DefaultTo<'VN'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    gender: Schema.Attribute.Enumeration<['Male', 'Female', 'Other']> &
+      Schema.Attribute.DefaultTo<'Male'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::player.player'
+    > &
+      Schema.Attribute.Private;
+    matches: Schema.Attribute.Relation<'manyToMany', 'api::match.match'>;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    rankLevel: Schema.Attribute.String;
+    rankPoint: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    slug: Schema.Attribute.UID<'name'>;
+    statusPlayer: Schema.Attribute.Enumeration<
+      ['Active', 'Inactive', 'Suspended']
+    > &
+      Schema.Attribute.DefaultTo<'Active'>;
+    system_tournaments: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::system-tournament.system-tournament'
+    >;
+    tournaments: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::tournament.tournament'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    users_permissions_user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
+export interface ApiRankLeverRankLever extends Struct.CollectionTypeSchema {
+  collectionName: 'rank_levers';
+  info: {
+    displayName: 'rankLever';
+    pluralName: 'rank-levers';
+    singularName: 'rank-lever';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    i18n: {
+      localized: false;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    lever: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::rank-lever.rank-lever'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    system_tournament: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::system-tournament.system-tournament'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -640,6 +679,7 @@ export interface ApiRoundRound extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    bracket: Schema.Attribute.Relation<'manyToOne', 'api::bracket.bracket'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -659,10 +699,6 @@ export interface ApiRoundRound extends Struct.CollectionTypeSchema {
       >;
     publishedAt: Schema.Attribute.DateTime;
     startTime: Schema.Attribute.DateTime;
-    tournament: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::tournament.tournament'
-    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -735,7 +771,12 @@ export interface ApiSystemTournamentSystemTournament
     packageActivatedAt: Schema.Attribute.DateTime;
     phoneNumber: Schema.Attribute.String;
     phoneZalo: Schema.Attribute.String;
+    players: Schema.Attribute.Relation<'manyToMany', 'api::player.player'>;
     publishedAt: Schema.Attribute.DateTime;
+    rank_levers: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::rank-lever.rank-lever'
+    >;
     system_package: Schema.Attribute.Relation<
       'oneToOne',
       'api::system-package.system-package'
@@ -748,6 +789,10 @@ export interface ApiSystemTournamentSystemTournament
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     userId: Schema.Attribute.String;
+    users_permissions_user: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
   };
 }
 
@@ -763,6 +808,7 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
   };
   attributes: {
     banner: Schema.Attribute.Media<'images' | 'files'>;
+    brackets: Schema.Attribute.Relation<'oneToMany', 'api::bracket.bracket'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -777,12 +823,11 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     location: Schema.Attribute.Text;
-    matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     maxParticipants: Schema.Attribute.Integer;
     name: Schema.Attribute.String;
+    players: Schema.Attribute.Relation<'manyToMany', 'api::player.player'>;
     prizePool: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
-    rounds: Schema.Attribute.Relation<'oneToMany', 'api::round.round'>;
     startDate: Schema.Attribute.DateTime;
     statusTournament: Schema.Attribute.Enumeration<
       ['upcoming', 'ongoing', 'finished']
@@ -1281,12 +1326,17 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    players: Schema.Attribute.Relation<'oneToMany', 'api::player.player'>;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;
     role: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.role'
+    >;
+    system_tournament: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::system-tournament.system-tournament'
     >;
     type: Schema.Attribute.Enumeration<['customer', 'system-owner']> &
       Schema.Attribute.Required &
@@ -1315,11 +1365,11 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::about.about': ApiAboutAbout;
       'api::app-setting.app-setting': ApiAppSettingAppSetting;
-      'api::article.article': ApiArticleArticle;
-      'api::author.author': ApiAuthorAuthor;
-      'api::category.category': ApiCategoryCategory;
+      'api::bracket.bracket': ApiBracketBracket;
       'api::global.global': ApiGlobalGlobal;
       'api::match.match': ApiMatchMatch;
+      'api::player.player': ApiPlayerPlayer;
+      'api::rank-lever.rank-lever': ApiRankLeverRankLever;
       'api::round.round': ApiRoundRound;
       'api::system-package.system-package': ApiSystemPackageSystemPackage;
       'api::system-tournament.system-tournament': ApiSystemTournamentSystemTournament;

@@ -10,5 +10,13 @@ export default {
         middlewares: [],
       },
     },
+    {
+      method: 'GET',
+      path: '/auth/search-user',
+      handler: 'auth.searchUser',
+      config: {
+        auth: {},
+      },
+    },
   ],
 }; 

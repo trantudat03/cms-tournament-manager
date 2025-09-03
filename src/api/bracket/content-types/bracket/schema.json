@@ -1,0 +1,70 @@
+{
+  "kind": "collectionType",
+  "collectionName": "brackets",
+  "info": {
+    "singularName": "bracket",
+    "pluralName": "brackets",
+    "displayName": "Bracket"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "bracketType": {
+      "type": "enumeration",
+      "enum": [
+        "Single Elimination",
+        "Double Elimination"
+      ]
+    },
+    "order": {
+      "type": "integer"
+    },
+    "startDate": {
+      "type": "datetime"
+    },
+    "endDate": {
+      "type": "datetime"
+    },
+    "bracketStatus": {
+      "type": "enumeration",
+      "default": "upcoming",
+      "enum": [
+        "upcoming",
+        "active",
+        "completed"
+      ]
+    },
+    "maxParticipants": {
+      "type": "integer"
+    },
+    "currentParticipants": {
+      "type": "integer"
+    },
+    "advanceToNextBracket": {
+      "type": "integer"
+    },
+    "tournament": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::tournament.tournament",
+      "inversedBy": "brackets"
+    },
+    "rounds": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::round.round",
+      "mappedBy": "bracket"
+    },
+    "players": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::player.player",
+      "inversedBy": "brackets"
+    }
+  }
+}

@@ -40,5 +40,84 @@ export default {
         auth: {},
       },
     },
+    // Thêm routes mới cho quản lý brackets
+    {
+      method: 'GET',
+      path: '/tournaments/:id/brackets',
+      handler: 'tournament-custom.getTournamentBrackets',
+      config: {
+        auth: {},
+      },
+    },
+    {
+      method: 'POST',
+      path: '/tournaments/:id/brackets',
+      handler: 'tournament-custom.createNewBracket',
+      config: {
+        auth: {},
+      },
+    },
+    // Thêm routes cho tái tạo matches
+    {
+      method: 'POST',
+      path: '/tournaments/:id/brackets/:bracketId/regenerate-matches',
+      handler: 'tournament-custom.regenerateBracketMatches',
+      config: {
+        auth: {},
+      },
+    },
+    {
+      method: 'POST',
+      path: '/tournaments/:id/regenerate-matches',
+      handler: 'tournament-custom.checkAndRegenerateMatches',
+      config: {
+        auth: {},
+      },
+    },
+    // Thêm player vào tournament
+    {
+      method: 'POST',
+      path: '/tournaments/:id/players/:playerId/add',
+      handler: 'tournament-custom.addPlayerToTournament',
+      config: {
+        auth: {},
+      },
+    },
+    // Xóa player khỏi tournament
+    {
+      method: 'DELETE',
+      path: '/tournaments/:id/players/:playerId/remove',
+      handler: 'tournament-custom.removePlayerFromTournament',
+      config: {
+        auth: {},
+      },
+    },
+    // Lấy danh sách players trong tournament
+    {
+      method: 'GET',
+      path: '/tournaments/:id/players',
+      handler: 'tournament-custom.getTournamentPlayers',
+      config: {
+        auth: {},
+      },
+    },
+    // Lấy danh sách players có trong system-tournament nhưng không có trong tournament
+    {
+      method: 'GET',
+      path: '/tournaments/:id/players/available',
+      handler: 'tournament-custom.getAvailablePlayersForTournament',
+      config: {
+        auth: {},
+      },
+    },
+    // Thêm nhiều players vào tournament
+    {
+      method: 'POST',
+      path: '/tournaments/:id/players/bulk-add',
+      handler: 'tournament-custom.addMultiplePlayersToTournament',
+      config: {
+        auth: {},
+      },
+    },
   ],
 }; 

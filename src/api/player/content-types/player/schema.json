@@ -1,0 +1,94 @@
+{
+  "kind": "collectionType",
+  "collectionName": "players",
+  "info": {
+    "singularName": "player",
+    "pluralName": "players",
+    "displayName": "player"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "targetField": "name"
+    },
+    "name": {
+      "type": "string"
+    },
+    "rankLevel": {
+      "type": "string"
+    },
+    "countryCode": {
+      "type": "string",
+      "default": "VN",
+      "minLength": 1,
+      "maxLength": 2
+    },
+    "avatar": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "birthDate": {
+      "type": "date"
+    },
+    "gender": {
+      "type": "enumeration",
+      "default": "Male",
+      "enum": [
+        "Male",
+        "Female",
+        "Other"
+      ]
+    },
+    "statusPlayer": {
+      "type": "enumeration",
+      "default": "Active",
+      "enum": [
+        "Active",
+        "Inactive",
+        "Suspended"
+      ]
+    },
+    "rankPoint": {
+      "type": "integer",
+      "default": 0
+    },
+    "matches": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::match.match",
+      "mappedBy": "players"
+    },
+    "system_tournaments": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::system-tournament.system-tournament",
+      "inversedBy": "players"
+    },
+    "tournaments": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::tournament.tournament",
+      "inversedBy": "players"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "players"
+    },
+    "brackets": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::bracket.bracket",
+      "mappedBy": "players"
+    }
+  }
+}

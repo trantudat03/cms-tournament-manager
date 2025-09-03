@@ -54,22 +54,22 @@
         "files"
       ]
     },
-    "rounds": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::round.round",
-      "mappedBy": "tournament"
-    },
     "system_tournament": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::system-tournament.system-tournament",
       "inversedBy": "tournaments"
     },
-    "matches": {
+    "players": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::player.player",
+      "mappedBy": "tournaments"
+    },
+    "brackets": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::match.match",
+      "target": "api::bracket.bracket",
       "mappedBy": "tournament"
     }
   }
