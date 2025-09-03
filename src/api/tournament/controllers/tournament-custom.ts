@@ -1,3 +1,5 @@
+import { TournamentBracket } from '../../../utils/tournament-bracket';
+
 export default {
   async findWithSearch(ctx) {
     const { page = 1, pageSize = 10, name } = ctx.query;
@@ -116,6 +118,7 @@ export default {
 
   async createBracket(ctx) {
     const { id } = ctx.params;
+    const { name, maxParticipants } = ctx.request.body;
     const user = ctx.state.user;
 
     try {
@@ -123,11 +126,24 @@ export default {
         return ctx.unauthorized("Missing or invalid JWT");
       }
 
+      // Kiểm tra thông tin bắt buộc từ body
+      if (!maxParticipants || maxParticipants <= 0) {
+        return ctx.badRequest('maxParticipants is required and must be greater than 0');
+      }
+
       // Lấy tournament
       const tournament = await strapi.documents('api::tournament.tournament').findOne({
         documentId: String(id),
         populate: {
-          rounds: true,
+          brackets: {
+            populate: {
+              rounds: {
+                populate: {
+                  matches: true
+                }
+              }
+            }
+          },
           system_tournament: true
         }
       });
@@ -142,30 +158,28 @@ export default {
         return ctx.forbidden("You are not allowed to access this tournament");
       }
 
-      // Kiểm tra xem tournament đã có rounds chưa (đã được xử lý trong utility function)
-      if (tournamentWithSystem.rounds && tournamentWithSystem.rounds.length > 0) {
-        return ctx.badRequest('Tournament already has rounds. Cannot create bracket again.');
-      }
+      // Cho phép tạo nhiều bracket - không cần kiểm tra giới hạn
+      // Logic này cho phép tournament có nhiều bracket (ví dụ: Main Bracket, Consolation Bracket, etc.)
 
-      // Kiểm tra maxParticipants
-      if (!tournament.maxParticipants || tournament.maxParticipants <= 0) {
-        return ctx.badRequest('Tournament must have maxParticipants greater than 0');
-      }
-
-      // Tạo bracket
-      const bracket = await strapi.service('api::tournament.tournament').createTournamentBracket(
+      // Tạo bracket sử dụng document API với thông tin từ body
+      const bracket = await TournamentBracket.createBracket(
         tournament.documentId,
-        tournament.maxParticipants
+        maxParticipants,
+        name
       );
 
       // Lấy tournament đã cập nhật với bracket
       const updatedTournament = await strapi.documents('api::tournament.tournament').findOne({
         documentId: String(id),
         populate: {
-          rounds: {
+          brackets: {
             populate: {
-              matches: {
-                populate: '*'
+              rounds: {
+                populate: {
+                  matches: {
+                    populate: '*'
+                  }
+                }
               }
             }
           }
@@ -174,8 +188,7 @@ export default {
 
       return ctx.send({
         data: updatedTournament,
-        message: 'Tournament bracket created successfully',
-        bracket: bracket
+        message: `Bracket "${bracket.bracket?.name || 'Main Bracket'}" created successfully`
       });
     } catch (error) {
       console.error('Create bracket error:', error);
@@ -192,25 +205,221 @@ export default {
         return ctx.unauthorized("Missing or invalid JWT");
       }
 
-      // Lấy thông tin bracket của tournament
-      const bracket = await strapi.service('api::tournament.tournament').getBracketInfo(id);
+      // Sử dụng document API để lấy tournament với kiểm tra matches
+      await TournamentBracket.checkAndRegenerateMatches(id);
+      
+      const tournament = await strapi.documents('api::tournament.tournament').findOne({
+        documentId: id,
+        populate: {
+          brackets: {
+            populate: {
+              rounds: {
+                populate: {
+                  matches: {
+                    populate: '*'
+                  }
+                }
+              },
+              players: true
+            }
+          },
+          system_tournament: true,
+        }
+      });
 
-      if (!bracket) {
+      if (!tournament) {
         return ctx.notFound('Tournament not found');
       }
 
       // Kiểm tra xem user có quyền truy cập tournament này không
-      const bracketWithSystem = bracket as any;
-      if (bracketWithSystem.system_tournament?.userId !== user.documentId) {
+      const tournamentWithSystem = tournament as any;
+      if (tournamentWithSystem.system_tournament?.userId !== user.documentId) {
         return ctx.forbidden("You are not allowed to access this tournament");
       }
 
       return ctx.send({
-        data: bracket
+        data: tournament
       });
     } catch (error) {
       console.error('Get bracket error:', error);
       return ctx.badRequest('Failed to get tournament bracket', { error: error.message });
+    }
+  },
+
+  // Thêm endpoints mới cho quản lý brackets
+  async getTournamentBrackets(ctx) {
+    const { id } = ctx.params;
+    const user = ctx.state.user;
+
+    try {
+      if (!user) {
+        return ctx.unauthorized("Missing or invalid JWT");
+      }
+
+      // Sử dụng document API để lấy tournament với kiểm tra matches
+      await TournamentBracket.checkAndRegenerateMatches(id);
+      
+      const tournament = await strapi.documents('api::tournament.tournament').findOne({
+        documentId: id,
+        populate: {
+          brackets: {
+            populate: {
+              rounds: {
+                populate: {
+                  matches: {
+                    populate: '*'
+                  }
+                }
+              },
+              players: true
+            }
+          },
+          system_tournament: true,
+        }
+      });
+
+      if (!tournament) {
+        return ctx.notFound('Tournament not found');
+      }
+
+      // Kiểm tra quyền truy cập
+      const tournamentWithSystem = tournament as any;
+      if (tournamentWithSystem.system_tournament?.userId !== user.documentId) {
+        return ctx.forbidden("You are not allowed to access this tournament");
+      }
+
+      return ctx.send({
+        data: tournament.brackets
+      });
+    } catch (error) {
+      console.error('Get tournament brackets error:', error);
+      return ctx.badRequest('Failed to get tournament brackets', { error: error.message });
+    }
+  },
+
+  async createNewBracket(ctx) {
+    const { id } = ctx.params;
+    const user = ctx.state.user;
+    const { data } = ctx.request.body;
+
+    try {
+      if (!user) {
+        return ctx.unauthorized("Missing or invalid JWT");
+      }
+
+      // Lấy tournament
+      const tournament = await strapi.documents('api::tournament.tournament').findOne({
+        documentId: String(id),
+        populate: {
+          system_tournament: true
+        }
+      });
+
+      if (!tournament) {
+        return ctx.notFound('Tournament not found');
+      }
+
+      // Kiểm tra quyền truy cập
+      const tournamentWithSystem = tournament as any;
+      if (tournamentWithSystem.system_tournament?.userId !== user.documentId) {
+        return ctx.forbidden("You are not allowed to access this tournament");
+      }
+
+      // Tạo bracket mới sử dụng document API
+      const bracket = await TournamentBracket.createNewBracket(id, data);
+
+      return ctx.send({
+        data: bracket,
+        message: 'Bracket created successfully'
+      });
+    } catch (error) {
+      console.error('Create new bracket error:', error);
+      return ctx.badRequest('Failed to create new bracket', { error: error.message });
+    }
+  },
+
+  // Thêm endpoint để tái tạo matches cho bracket
+  async regenerateBracketMatches(ctx) {
+    const { id, bracketId } = ctx.params;
+    const user = ctx.state.user;
+
+    try {
+      if (!user) {
+        return ctx.unauthorized("Missing or invalid JWT");
+      }
+
+      // Lấy tournament
+      const tournament = await strapi.documents('api::tournament.tournament').findOne({
+        documentId: String(id),
+        populate: {
+          system_tournament: true
+        }
+      });
+
+      if (!tournament) {
+        return ctx.notFound('Tournament not found');
+      }
+
+      // Kiểm tra quyền truy cập
+      const tournamentWithSystem = tournament as any;
+      if (tournamentWithSystem.system_tournament?.userId !== user.documentId) {
+        return ctx.forbidden("You are not allowed to access this tournament");
+      }
+
+      // Tái tạo matches cho bracket sử dụng document API
+      const result = await TournamentBracket.regenerateMatches(
+        bracketId, 
+        tournament.maxParticipants
+      );
+
+      return ctx.send({
+        data: result,
+        message: 'Bracket matches regenerated successfully'
+      });
+    } catch (error) {
+      console.error('Regenerate bracket matches error:', error);
+      return ctx.badRequest('Failed to regenerate bracket matches', { error: error.message });
+    }
+  },
+
+  // Thêm endpoint để kiểm tra và tái tạo matches cho toàn bộ tournament
+  async checkAndRegenerateMatches(ctx) {
+    const { id } = ctx.params;
+    const user = ctx.state.user;
+
+    try {
+      if (!user) {
+        return ctx.unauthorized("Missing or invalid JWT");
+      }
+
+      // Lấy tournament
+      const tournament = await strapi.documents('api::tournament.tournament').findOne({
+        documentId: String(id),
+        populate: {
+          system_tournament: true
+        }
+      });
+
+      if (!tournament) {
+        return ctx.notFound('Tournament not found');
+      }
+
+      // Kiểm tra quyền truy cập
+      const tournamentWithSystem = tournament as any;
+      if (tournamentWithSystem.system_tournament?.userId !== user.documentId) {
+        return ctx.forbidden("You are not allowed to access this tournament");
+      }
+
+      // Kiểm tra và tái tạo matches sử dụng document API
+      const results = await TournamentBracket.checkAndRegenerateMatches(id);
+
+      return ctx.send({
+        data: results,
+        message: 'Tournament matches checked and regenerated successfully'
+      });
+    } catch (error) {
+      console.error('Check and regenerate matches error:', error);
+      return ctx.badRequest('Failed to check and regenerate matches', { error: error.message });
     }
   },
 

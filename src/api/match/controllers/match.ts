@@ -29,6 +29,15 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
           nextMatchWinner: true,
           previousMatch1: true,
           previousMatch2: true,
+          round: {
+            populate: {
+              bracket: {
+                populate: {
+                  tournament: true
+                }
+              }
+            }
+          }
         }
     });
 
@@ -37,31 +46,35 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       }
 
       // Gửi event realtime qua Pusher
-      // Gửi đến channel của tournament cụ thể
-     
-        const matchSummary = {
-          id: fullMatch.id,
-          name: fullMatch.name,
-          status: fullMatch.statusMatch,
-          score1: fullMatch.score1,
-          score2: fullMatch.score2,
-          playerName1: fullMatch.playerName1,
-          playerName2: fullMatch.playerName2,
-          winner: fullMatch.winner,
-          nextMatchLoser: fullMatch.nextMatchLoser,
-          nextMatchWinner: fullMatch.nextMatchWinner,
-          previousMatch1: fullMatch.previousMatch1,
-          previousMatch2: fullMatch.previousMatch2,
-          startTime: fullMatch.startTime,
-          endTime: fullMatch.endTime,
-          matchNumber: fullMatch.matchNumber,
-          statusMatch: fullMatch.statusMatch,
-          updatedAt: fullMatch.updatedAt
-        };
+      const matchSummary = {
+        id: fullMatch.id,
+        name: fullMatch.name,
+        status: fullMatch.statusMatch,
+        score1: fullMatch.score1,
+        score2: fullMatch.score2,
+        playerName1: fullMatch.playerName1,
+        playerName2: fullMatch.playerName2,
+        winner: fullMatch.winner,
+        nextMatchLoser: fullMatch.nextMatchLoser,
+        nextMatchWinner: fullMatch.nextMatchWinner,
+        previousMatch1: fullMatch.previousMatch1,
+        previousMatch2: fullMatch.previousMatch2,
+        startTime: fullMatch.startTime,
+        endTime: fullMatch.endTime,
+        matchNumber: fullMatch.matchNumber,
+        statusMatch: fullMatch.statusMatch,
+        updatedAt: fullMatch.updatedAt,
+        round: fullMatch.round,
+        tournament: fullMatch.round?.bracket?.tournament
+      };
         
-        // await pusher.trigger(`tournament-${tournamentId}`, 'match-updated', matchSummary);        
-        // Gửi thêm event đến channel riêng cho match
-        await pusher.trigger(`match-${id}`, 'match-updated', matchSummary);
+      // Gửi event đến channel riêng cho match
+      await pusher.trigger(`match-${id}`, 'match-updated', matchSummary);
+
+      // Gửi event đến channel của tournament nếu có
+      if (fullMatch.round?.bracket?.tournament) {
+        await pusher.trigger(`tournament-${fullMatch.round.bracket.tournament.documentId}`, 'match-updated', matchSummary);
+      }
 
       return ctx.send({ data: fullMatch });
     } catch (error) {
@@ -74,23 +87,30 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     try {
       const { id } = ctx.params;
       
-      // Lấy match với populate đầy đủ
+      // Lấy match với populate đầy đủ theo cấu trúc mới
       const match = await strapi.documents('api::match.match').findOne({
         documentId: id,
         populate: {
           round: {
             populate: {
-              tournament: {
-                populate: '*'
+              bracket: {
+                populate: {
+                  tournament: {
+                    populate: '*'
+                  }
+                }
               }
             }
           },
-          team1: {
-            populate: '*'
+          players: {
+            populate: {
+              avatar: true
+            }
           },
-          team2: {
-            populate: '*'
-          }
+          nextMatchLoser: true,
+          nextMatchWinner: true,
+          previousMatch1: true,
+          previousMatch2: true
         }
       });
 
@@ -110,7 +130,7 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       // Lấy query parameters
       const { page = 1, pageSize = 25, sort = 'createdAt:desc', filters = {} } = ctx.query;
       
-      // Lấy matches với populate đầy đủ
+      // Lấy matches với populate đầy đủ theo cấu trúc mới
       const matches = await strapi.documents('api::match.match').findMany({
         filters: filters as any,
         sort: Array.isArray(sort) ? sort : [sort as string],
@@ -121,17 +141,24 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
         populate: {
           round: {
             populate: {
-              tournament: {
-                populate: '*'
+              bracket: {
+                populate: {
+                  tournament: {
+                    populate: '*'
+                  }
+                }
               }
             }
           },
-          team1: {
-            populate: '*'
+          players: {
+            populate: {
+              avatar: true
+            }
           },
-          team2: {
-            populate: '*'
-          }
+          nextMatchLoser: true,
+          nextMatchWinner: true,
+          previousMatch1: true,
+          previousMatch2: true
         }
       });
 

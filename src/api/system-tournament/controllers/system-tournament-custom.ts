@@ -290,13 +290,29 @@ export default {
       sum + (tournament.prizePool || 0), 0
     );
 
-    // Lấy danh sách ID của các tournament hiện tại để đếm matches
-    const currentTournamentIds = currentTournaments.map(t => t.id);
-    const currentTotalMatches = currentTournamentIds.length > 0 ? await strapi.documents('api::match.match').count({
-      filters: { 
-        tournament: { id: { $in: currentTournamentIds } }
+    // Đếm matches theo flow: tournament -> bracket -> round -> match
+    let currentTotalMatches = 0;
+    for (const tournament of currentTournaments) {
+      // Lấy brackets của tournament
+      const brackets = await strapi.documents('api::bracket.bracket').findMany({
+        filters: { tournament: { documentId: tournament.documentId } }
+      });
+      
+      for (const bracket of brackets) {
+        // Lấy rounds của bracket
+        const rounds = await strapi.documents('api::round.round').findMany({
+          filters: { bracket: { documentId: bracket.documentId } }
+        });
+        
+        for (const round of rounds) {
+          // Đếm matches của round
+          const matchCount = await strapi.documents('api::match.match').count({
+            filters: { round: { documentId: round.documentId } }
+          });
+          currentTotalMatches += matchCount;
+        }
       }
-    }) : 0;
+    }
 
     // Thống kê tháng trước (từ đầu tháng trước đến ngày hiện tại của tháng trước)
     const lastMonthTournaments = await strapi.documents('api::tournament.tournament').findMany({
@@ -317,13 +333,29 @@ export default {
       sum + (tournament.prizePool || 0), 0
     );
 
-    // Lấy danh sách ID của các tournament tháng trước để đếm matches
-    const lastMonthTournamentIds = lastMonthTournaments.map(t => t.id);
-    const lastMonthTotalMatches = lastMonthTournamentIds.length > 0 ? await strapi.documents('api::match.match').count({
-      filters: { 
-        tournament: { id: { $in: lastMonthTournamentIds } }
+    // Đếm matches theo flow: tournament -> bracket -> round -> match (tháng trước)
+    let lastMonthTotalMatches = 0;
+    for (const tournament of lastMonthTournaments) {
+      // Lấy brackets của tournament
+      const brackets = await strapi.documents('api::bracket.bracket').findMany({
+        filters: { tournament: { documentId: tournament.documentId } }
+      });
+      
+      for (const bracket of brackets) {
+        // Lấy rounds của bracket
+        const rounds = await strapi.documents('api::round.round').findMany({
+          filters: { bracket: { documentId: bracket.documentId } }
+        });
+        
+        for (const round of rounds) {
+          // Đếm matches của round
+          const matchCount = await strapi.documents('api::match.match').count({
+            filters: { round: { documentId: round.documentId } }
+          });
+          lastMonthTotalMatches += matchCount;
+        }
       }
-    }) : 0;
+    }
 
     // Tính phần trăm tăng trưởng
     const tournamentGrowth = lastMonthTotalTournaments > 0 

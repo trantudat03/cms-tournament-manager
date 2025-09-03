@@ -431,6 +431,53 @@ export interface ApiAppSettingAppSetting extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiBracketBracket extends Struct.CollectionTypeSchema {
+  collectionName: 'brackets';
+  info: {
+    displayName: 'Bracket';
+    pluralName: 'brackets';
+    singularName: 'bracket';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    advanceToNextBracket: Schema.Attribute.Integer;
+    bracketStatus: Schema.Attribute.Enumeration<
+      ['upcoming', 'active', 'completed']
+    > &
+      Schema.Attribute.DefaultTo<'upcoming'>;
+    bracketType: Schema.Attribute.Enumeration<
+      ['Single Elimination', 'Double Elimination']
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currentParticipants: Schema.Attribute.Integer;
+    endDate: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::bracket.bracket'
+    > &
+      Schema.Attribute.Private;
+    maxParticipants: Schema.Attribute.Integer;
+    name: Schema.Attribute.String;
+    order: Schema.Attribute.Integer;
+    players: Schema.Attribute.Relation<'manyToMany', 'api::player.player'>;
+    publishedAt: Schema.Attribute.DateTime;
+    rounds: Schema.Attribute.Relation<'oneToMany', 'api::round.round'>;
+    startDate: Schema.Attribute.DateTime;
+    tournament: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::tournament.tournament'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   collectionName: 'globals';
   info: {
@@ -514,10 +561,6 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       ['pending', 'in_progress', 'complated', 'rejected']
     >;
     table: Schema.Attribute.String;
-    tournament: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::tournament.tournament'
-    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -540,6 +583,7 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
   attributes: {
     avatar: Schema.Attribute.Media<'images' | 'files'>;
     birthDate: Schema.Attribute.Date;
+    brackets: Schema.Attribute.Relation<'manyToMany', 'api::bracket.bracket'>;
     countryCode: Schema.Attribute.String &
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 2;
@@ -635,6 +679,7 @@ export interface ApiRoundRound extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    bracket: Schema.Attribute.Relation<'manyToOne', 'api::bracket.bracket'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -654,10 +699,6 @@ export interface ApiRoundRound extends Struct.CollectionTypeSchema {
       >;
     publishedAt: Schema.Attribute.DateTime;
     startTime: Schema.Attribute.DateTime;
-    tournament: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::tournament.tournament'
-    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -767,6 +808,7 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
   };
   attributes: {
     banner: Schema.Attribute.Media<'images' | 'files'>;
+    brackets: Schema.Attribute.Relation<'oneToMany', 'api::bracket.bracket'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -781,13 +823,11 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     location: Schema.Attribute.Text;
-    matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     maxParticipants: Schema.Attribute.Integer;
     name: Schema.Attribute.String;
     players: Schema.Attribute.Relation<'manyToMany', 'api::player.player'>;
     prizePool: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
-    rounds: Schema.Attribute.Relation<'oneToMany', 'api::round.round'>;
     startDate: Schema.Attribute.DateTime;
     statusTournament: Schema.Attribute.Enumeration<
       ['upcoming', 'ongoing', 'finished']
@@ -1325,6 +1365,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::about.about': ApiAboutAbout;
       'api::app-setting.app-setting': ApiAppSettingAppSetting;
+      'api::bracket.bracket': ApiBracketBracket;
       'api::global.global': ApiGlobalGlobal;
       'api::match.match': ApiMatchMatch;
       'api::player.player': ApiPlayerPlayer;

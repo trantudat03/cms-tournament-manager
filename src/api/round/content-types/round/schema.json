@@ -25,17 +25,17 @@
     "endTime": {
       "type": "datetime"
     },
-    "tournament": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::tournament.tournament",
-      "inversedBy": "rounds"
-    },
     "matches": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::match.match",
       "mappedBy": "round"
+    },
+    "bracket": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bracket.bracket",
+      "inversedBy": "rounds"
     }
   }
 }

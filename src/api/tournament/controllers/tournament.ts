@@ -50,22 +50,8 @@ export default factories.createCoreController('api::tournament.tournament', ({ s
         documentId: tournament.documentId,
       });
 
-      // Lấy đầy đủ thông tin tournament đã populate (bao gồm rounds và matches được tạo tự động)
-      const fullTournament = await strapi.documents('api::tournament.tournament').findOne({
-        documentId: tournament.documentId,
-        populate: {
-          rounds: {
-            populate: {
-              matches: {
-                populate: '*'
-              }
-            }
-          },
-          system_tournament: {
-            populate: '*'
-          }
-        }
-      });
+      // Lấy đầy đủ thông tin tournament đã populate (bao gồm brackets, rounds và matches được tạo tự động)
+      const fullTournament = await strapi.service('api::tournament.tournament').getTournamentWithMatches(tournament.documentId);
 
       return ctx.send({ data: fullTournament });
     } catch (error) {
@@ -93,93 +79,85 @@ export default factories.createCoreController('api::tournament.tournament', ({ s
         documentId: id,
     });
 
-    // Lấy đầy đủ thông tin tournament đã populate
-    const fullTournament = await strapi.documents('api::tournament.tournament').findOne({
-      documentId: id,
-      populate: {
-        rounds: {
-          populate: {
-            matches: {
-              populate: '*'
-            }
-          }
-        },
-        system_tournament: {
-          populate: '*'
-        }
-      }
-    });
+    // Lấy đầy đủ thông tin tournament đã populate với kiểm tra matches
+    const fullTournament = await strapi.service('api::tournament.tournament').getTournamentWithMatches(id);
 
     return ctx.send({ data: fullTournament });
   },
 
-  async find(ctx) {
-    // Lấy query parameters
-    const { page = 1, pageSize = 25, sort = 'createdAt:desc', filters = {} } = ctx.query;
-    
-    // Lấy tournaments với populate đầy đủ
-    const tournaments = await strapi.documents('api::tournament.tournament').findMany({
-      filters: filters as any,
-      sort: Array.isArray(sort) ? sort : [sort as string],
-      pagination: {
-        page: parseInt(page as string),
-        pageSize: parseInt(pageSize as string)
-      },
-      populate: {
-        rounds: {
-          populate: {
-            matches: {
-              populate: '*'
-            }
-          }
-        },
-        system_tournament: {
-          populate: '*'
-        }
-      }
-    });
-
-    // Đếm tổng số tournaments
-    const total = await strapi.documents('api::tournament.tournament').count({ filters: filters as any });
-    const totalPage = Math.ceil(total / parseInt(pageSize as string));
-
-    return ctx.send({
-      data: tournaments,
-      meta: {
-        pagination: {
-          page: parseInt(page as string),
-          pageSize: parseInt(pageSize as string),
-          total,
-          totalPage
-        }
-      }
-    });
-  },
-
   async findOne(ctx) {
     const { id } = ctx.params;
-    
-    // Lấy tournament với populate đầy đủ
-    const tournament = await strapi.documents('api::tournament.tournament').findOne({
-      documentId: id,
-      populate: {
-        rounds: {
-          populate: {
-            matches: {
-              populate: '*'
+
+    try {
+      // Sử dụng service mới để lấy tournament với kiểm tra matches
+      const tournament = await strapi.service('api::tournament.tournament').getTournamentWithMatches(id);
+
+      if (!tournament) {
+        return ctx.notFound('Tournament not found');
+      }
+
+      return ctx.send({ data: tournament });
+    } catch (error) {
+      console.error('Error finding tournament:', error);
+      return ctx.badRequest('Failed to find tournament', { error: error.message });
+    }
+  },
+
+  async findMany(ctx) {
+    try {
+      const { query } = ctx;
+      let filters = query.filters || {};
+      
+      // Sử dụng Document Service API với populate đầy đủ
+      const tournaments = await strapi.documents('api::tournament.tournament').findMany({
+        filters,
+        populate: {
+          brackets: {
+            populate: {
+              rounds: {
+                populate: {
+                  matches: {
+                    populate: '*'
+                  }
+                }
+              }
+            }
+          },
+          system_tournament: {
+            populate: '*'
+          },
+          players: {
+            populate: {
+              avatar: true,
+              system_tournaments: true
             }
           }
         },
-        system_tournament: {
-          populate: '*'
+        sort: { createdAt: 'desc' },
+        pagination: {
+          page: ((query.pagination as any)?.page) || 1,
+          pageSize: ((query.pagination as any)?.pageSize) || 25
+        }
+      });
+
+      // Kiểm tra và tái tạo matches cho từng tournament nếu cần
+      for (const tournament of tournaments) {
+        try {
+          await strapi.service('api::tournament.tournament').checkAndRegenerateMatches(tournament.documentId);
+        } catch (error) {
+          console.error(`Error checking matches for tournament ${tournament.documentId}:`, error);
         }
       }
-    });
 
-    if (!tournament) {
-      return ctx.notFound('Tournament not found');
+      return ctx.send({
+        data: tournaments,
+        meta: {
+          count: tournaments.length
+        }
+      });
+    } catch (error) {
+      console.error('Error finding tournaments:', error);
+      return ctx.badRequest('Failed to find tournaments', { error: error.message });
     }
-
-    return ctx.send({ data: tournament });
   }
 }));

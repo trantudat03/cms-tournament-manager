@@ -13,14 +13,28 @@ export default factories.createCoreController('api::round.round', ({ strapi }) =
         return ctx.badRequest('Tournament ID is required');
       }
 
-      // Sử dụng strapi.documents để tìm theo documentId
+      // Lấy tất cả brackets của tournament trước
+      const brackets = await strapi.documents('api::bracket.bracket').findMany({
+        filters: {
+          tournament: { documentId: { $eq: tournamentId } }
+        }
+      });
+
+      const bracketIds = brackets.map(b => b.documentId);
+
+      // Sau đó lấy rounds của các brackets đó
       const rounds = await strapi.documents('api::round.round').findMany({
         filters: {
-          tournament: {
-            documentId: { $eq: tournamentId }
+          bracket: {
+            documentId: { $in: bracketIds }
           }
         },
         populate: {
+          bracket: {
+            populate: {
+              tournament: true
+            }
+          },
           matches: {
             populate: {
               nextMatchWinner: true,
@@ -52,8 +66,17 @@ export default factories.createCoreController('api::round.round', ({ strapi }) =
       
       // Xử lý filters để đảm bảo type đúng cho documentId
       if ((filters as any).tournament && typeof (filters as any).tournament === 'string') {
-        (filters as any).tournament = {
-          documentId: { $eq: (filters as any).tournament }
+        // Nếu filter theo tournament, cần chuyển thành filter theo bracket
+        const brackets = await strapi.documents('api::bracket.bracket').findMany({
+          filters: {
+            tournament: { documentId: { $eq: (filters as any).tournament } }
+          }
+        });
+        const bracketIds = brackets.map(b => b.documentId);
+        
+        delete (filters as any).tournament;
+        (filters as any).bracket = {
+          documentId: { $in: bracketIds }
         };
       }
       
@@ -61,15 +84,17 @@ export default factories.createCoreController('api::round.round', ({ strapi }) =
       const rounds = await strapi.documents('api::round.round').findMany({
         filters,
         populate: {
-          tournament: true,
+          bracket: {
+            populate: {
+              tournament: true
+            }
+          },
           matches: {
             populate: {
               nextMatchWinner: true,
               nextMatchLoser: true,
               previousMatch1: true,
               previousMatch2: true,
-              round: true,
-              tournament: true
             }
           }
         },

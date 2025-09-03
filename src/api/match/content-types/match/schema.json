@@ -91,12 +91,6 @@
       "target": "api::round.round",
       "inversedBy": "matches"
     },
-    "tournament": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::tournament.tournament",
-      "inversedBy": "matches"
-    },
     "players": {
       "type": "relation",
       "relation": "manyToMany",

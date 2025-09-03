@@ -40,6 +40,40 @@ export default {
         auth: {},
       },
     },
+    // Thêm routes mới cho quản lý brackets
+    {
+      method: 'GET',
+      path: '/tournaments/:id/brackets',
+      handler: 'tournament-custom.getTournamentBrackets',
+      config: {
+        auth: {},
+      },
+    },
+    {
+      method: 'POST',
+      path: '/tournaments/:id/brackets',
+      handler: 'tournament-custom.createNewBracket',
+      config: {
+        auth: {},
+      },
+    },
+    // Thêm routes cho tái tạo matches
+    {
+      method: 'POST',
+      path: '/tournaments/:id/brackets/:bracketId/regenerate-matches',
+      handler: 'tournament-custom.regenerateBracketMatches',
+      config: {
+        auth: {},
+      },
+    },
+    {
+      method: 'POST',
+      path: '/tournaments/:id/regenerate-matches',
+      handler: 'tournament-custom.checkAndRegenerateMatches',
+      config: {
+        auth: {},
+      },
+    },
     // Thêm player vào tournament
     {
       method: 'POST',

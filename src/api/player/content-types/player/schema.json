@@ -83,6 +83,12 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "players"
+    },
+    "brackets": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::bracket.bracket",
+      "mappedBy": "players"
     }
   }
 }
